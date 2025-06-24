@@ -98,10 +98,10 @@ def main():
             cfg.optim_wrapper.type = 'AmpOptimWrapper'
             cfg.optim_wrapper.loss_scale = 'dynamic'
 ############################################################
-
-
+    #关于继续训练，看看args里面需不需要继续训练，如果要就覆盖上去，没有就是cfg里默认的
+    cfg.resume = args.resume
     print("over")
-
+##################################
 
 
 
