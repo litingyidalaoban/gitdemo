@@ -2,7 +2,7 @@
 import argparse
 
 import os
-
+import os.path as osp
 
 from mmmengine.utils import DictAction,Config
 
@@ -58,9 +58,35 @@ def parse_args():
 def main():
     #这里是把所有args都放在命名空间，可以用args.xxx来获取
     args = parse_args()
+
     #这里其实只用到了模型的配置文件的声明信息，就是unet.py
     cfg=Config.fromfile(args.config)
+    #这里用的是pytorch环境
+    cfg.launcher = args.launcher
+    #这里的如果有其他需要更改的，就把args里的那些额外的配置，改到cfg里面去
+    if args.cfg_options is not None:
+        cfg.merge_from_dict(args.cfg_options)
+    #命令行的优先级大于配置文件大于里面自带的
+    # work_dir is determined in this priority: CLI > segment in file > filename
+    #如果需要更改工作目录，就把cfg里的工作目录改成args里的，
+    if args.work_dir is not None:
+        # update configs according to CLI args if args.work_dir is not None
+        cfg.work_dir = args.work_dir
+    #又如果配置文件里没有工作目录，那就是默认在根目录下创建一个config同名的这个目录
+    elif cfg.get('work_dir', None) is None:
+        # use config filename as default work_dir if cfg.work_dir is None
+        cfg.work_dir = osp.join('./work_dirs',
+                                osp.splitext(osp.basename(args.config))[0])
+
+
+
+
+
     print("over")
+
+
+
+
 
 if __name__ == '__main__':
     main()
