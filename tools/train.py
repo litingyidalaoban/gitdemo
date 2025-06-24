@@ -3,9 +3,9 @@ import argparse
 
 import os
 import os.path as osp
-
+from mmengine.logging import print_log
 from mmmengine.utils import DictAction,Config
-
+import logging
 
 #如果是两个横杠
 def parse_args():
@@ -58,7 +58,7 @@ def parse_args():
 def main():
     #这里是把所有args都放在命名空间，可以用args.xxx来获取
     args = parse_args()
-
+###############################################################
     #这里其实只用到了模型的配置文件的声明信息，就是unet.py
     cfg=Config.fromfile(args.config)
     #这里用的是pytorch环境
@@ -68,7 +68,7 @@ def main():
         cfg.merge_from_dict(args.cfg_options)
     #命令行的优先级大于配置文件大于里面自带的
     # work_dir is determined in this priority: CLI > segment in file > filename
-    #如果需要更改工作目录，就把cfg里的工作目录改成args里的，
+    #如果需要更改工作目录，就把cfg里的工作目录改成args里的
     if args.work_dir is not None:
         # update configs according to CLI args if args.work_dir is not None
         cfg.work_dir = args.work_dir
@@ -77,9 +77,27 @@ def main():
         # use config filename as default work_dir if cfg.work_dir is None
         cfg.work_dir = osp.join('./work_dirs',
                                 osp.splitext(osp.basename(args.config))[0])
-
-
-
+##########################################################
+        #关于混合精度训练
+        # enable automatic-mixed-precision training
+        #如果需要混合精度训练，只有true和false两种情况，选择了参数但不填也是True
+    if args.amp is True:
+        #优化器就变成了配置文件中的优化器的类型
+        optim_wrapper = cfg.optim_wrapper.type
+        #如果他是自动混合精度的优化器，就打印你已经是混合精度了
+        if optim_wrapper == 'AmpOptimWrapper':
+            print_log(
+                'AMP training is already enabled in your config.',
+                logger='current',
+                level=logging.WARNING)
+        #否则，如果开了，但是optimwrapper不是Optimwrapper，就会把optimwrapper变成ampoptimwrapper
+        else:
+            assert optim_wrapper == 'OptimWrapper', (
+                '`--amp` is only supported when the optimizer wrapper type is '
+                f'`OptimWrapper` but got {optim_wrapper}.')
+            cfg.optim_wrapper.type = 'AmpOptimWrapper'
+            cfg.optim_wrapper.loss_scale = 'dynamic'
+############################################################
 
 
     print("over")
