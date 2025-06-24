@@ -1,0 +1,3 @@
+这是一个拆解openmmlab的过程。
+从train.py的最顶层一步步到runner
+可以通过下载sourcetree来一步步看训练的工作流
