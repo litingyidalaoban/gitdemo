@@ -4,8 +4,12 @@ import argparse
 import os
 import os.path as osp
 from mmengine.logging import print_log
-from mmmengine.utils import DictAction,Config
+from mmengine.config import DictAction,Config
 import logging
+
+from mmengine.runner import Runner
+
+from mmseg.registry import RUNNERS
 
 #如果是两个横杠
 def parse_args():
@@ -100,11 +104,21 @@ def main():
 ############################################################
     #关于继续训练，看看args里面需不需要继续训练，如果要就覆盖上去，没有就是cfg里默认的
     cfg.resume = args.resume
-    print("over")
+    
 ##################################
-
-
-
+    #从配置文件中构建runner，
+        # build the runner from config
+    #先看看是不是在cfg里面，没有的话就是默认用cfg里的配置实例化一个runner。
+    if 'runner_type' not in cfg:
+        # build the default runner
+        runner = Runner.from_cfg(cfg)
+    else:
+        # build customized runner from the registry
+        # if 'runner_type' is set in the cfg
+        runner = RUNNERS.build(cfg)
+    # start training
+    runner.train()
+    # print("over")
 
 if __name__ == '__main__':
     main()
