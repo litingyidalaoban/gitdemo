@@ -1,1 +1,1 @@
-from .config import DictAction
+from .config import *

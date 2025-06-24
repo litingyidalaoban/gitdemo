@@ -4,7 +4,7 @@ import argparse
 import os
 
 
-from mmmengine.utils import DictAction
+from mmmengine.utils import DictAction,Config
 
 
 #如果是两个横杠
@@ -47,7 +47,7 @@ def parse_args():
     # of `--local_rank`.
     #允许两种不同的名称，但是限定输入为整数类型，默认是0
     parser.add_argument('--local_rank', '--local-rank', type=int, default=0)
-    
+
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -56,7 +56,10 @@ def parse_args():
 
 
 def main():
+    #这里是把所有args都放在命名空间，可以用args.xxx来获取
     args = parse_args()
+    #这里其实只用到了模型的配置文件的声明信息，就是unet.py
+    cfg=Config.fromfile(args.config)
     print("over")
 
 if __name__ == '__main__':
